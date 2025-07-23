@@ -1,773 +1,911 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-9">
-    <meta name="viewport" content="width=device-width, initial-scale=-1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="delivery-icon.jpg" type="image/jpg">
-<link rel="apple-touch-icon" href="icon.jpg">
+    <link rel="apple-touch-icon" href="icon.jpg">
     <title>Sistem Antrian Pengiriman</title>
     <style>
     * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  min-height: 100vh;
-  padding: 20px;
-  position: relative;
-  overflow-x: hidden;
-}
-
-/* Animated background particles */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
-  z-index: -1;
-  animation: backgroundShift 20s ease-in-out infinite;
-}
-
-@keyframes backgroundShift {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  33% { transform: translate(30px, -30px) rotate(120deg); }
-  66% { transform: translate(-20px, 20px) rotate(240deg); }
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 24px;
-  box-shadow: 
-    0 32px 64px rgba(0,0,0,0.12),
-    0 0 0 1px rgba(255,255,255,0.2);
-  overflow: hidden;
-  animation: containerFloat 6s ease-in-out infinite;
-  border: 1px solid rgba(255,255,255,0.2);
-}
-
-@keyframes containerFloat {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-.header {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  color: white;
-  padding: 40px 30px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.header::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.1), transparent);
-  animation: headerRotate 15s linear infinite;
-}
-
-@keyframes headerRotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.header h1 {
-  font-size: 3em;
-  margin-bottom: 15px;
-  position: relative;
-  z-index: 2;
-  font-weight: 800;
-  letter-spacing: -1px;
-  background: linear-gradient(135deg, #ffffff, #a8edea, #fed6e3);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 2px 20px rgba(255,255,255,0.3);
-}
-
-.header p {
-  font-size: 1.2em;
-  opacity: 0.9;
-  position: relative;
-  z-index: 2;
-  font-weight: 300;
-}
-
-.main-content {
-  padding: 40px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-}
-
-.stats-section {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 25px;
-  margin-bottom: 40px;
-}
-
-.stat-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  padding: 30px;
-  border-radius: 20px;
-  text-align: center;
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: 
-    0 10px 25px rgba(0,0,0,0.08),
-    0 0 0 1px rgba(255,255,255,0.5),
-    inset 0 1px 0 rgba(255,255,255,0.6);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  position: relative;
-  overflow: hidden;
-}
-
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-  transition: left 0.7s;
-}
-
-.stat-card:hover::before {
-  left: 100%;
-}
-
-.stat-card:hover {
-  transform: translateY(-10px) scale(1.02);
-  box-shadow: 
-    0 25px 45px rgba(0,0,0,0.15),
-    0 0 0 1px rgba(255,255,255,0.6);
-}
-
-.stat-number {
-  font-size: 3.5em;
-  font-weight: 900;
-  margin-bottom: 10px;
-  position: relative;
-  z-index: 2;
-}
-
-.stat-label {
-  color: #64748b;
-  font-weight: 600;
-  font-size: 1.1em;
-  position: relative;
-  z-index: 2;
-}
-
-.input-section {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  padding: 35px;
-  border-radius: 20px;
-  margin-bottom: 40px;
-  border: 1px solid rgba(255,255,255,0.3);
-  box-shadow: 
-    0 20px 40px rgba(0,0,0,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.6);
-}
-
-.section-title {
-  font-size: 1.5em;
-  font-weight: 700;
-  margin-bottom: 25px;
-  color: #1e293b;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 2fr);
-  gap: 20px;
-  margin-bottom: 25px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.form-group label {
-  font-weight: 600;
-  color: #374151;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-input[type="text"],
-select,
-input[type="number"] {
-  padding: 16px 20px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 16px;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  font-weight: 500;
-}
-
-input[type="text"]:focus,
-select:focus,
-input[type="number"]:focus {
-  border-color: #3b82f6;
-  box-shadow: 
-    0 0 0 4px rgba(59, 130, 246, 0.1),
-    0 10px 25px rgba(0,0,0,0.1);
-  outline: none;
-  transform: translateY(-2px);
-  background: #ffffff;
-}
-
-.additional-items {
-  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-  border: 2px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 25px;
-  margin: 25px 0;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.additional-items h4 {
-  color: #1e293b;
-  margin-bottom: 20px;
-  font-size: 1.2em;
-  font-weight: 700;
-}
-
-.item-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
-}
-
-.item-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 15px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  position: relative;
-  overflow: hidden;
-}
-
-.item-checkbox::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
-  transition: left 0.5s;
-}
-
-.item-checkbox:hover::before {
-  left: 100%;
-}
-
-.item-checkbox:hover {
-  border-color: #3b82f6;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
-}
-
-.item-checkbox input[type="checkbox"] {
-  transform: scale(1.3);
-  accent-color: #3b82f6;
-}
-
-.quantity-control {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-left: auto;
-}
-
-.quantity-control input {
-  width: 60px;
-  text-align: center;
-  padding: 8px;
-}
-
-.btn {
-  padding: 16px 24px;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  position: relative;
-  overflow: hidden;
-}
-
-.btn::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(255,255,255,0.2);
-  border-radius: 50%;
-  transition: all 0.3s ease;
-}
-
-.btn:hover::before {
-  width: 300px;
-  height: 300px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: white;
-  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
-}
-
-.btn-primary:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
-}
-
-.btn-success {
-  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-  color: white;
-  margin-right: 15px;
-  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
-}
-
-.btn-success:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
-}
-
-.btn-danger {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-  box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
-}
-
-.btn-danger:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4);
-}
-
-.timer-section {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  padding: 30px;
-  border-radius: 20px;
-  margin-bottom: 30px;
-  text-align: center;
-  display: none;
-  box-shadow: 0 20px 40px rgba(245, 158, 11, 0.3);
-  border: 1px solid rgba(255,255,255,0.2);
-}
-
-.timer-display {
-  font-size: 4em;
-  font-weight: 900;
-  color: white;
-  margin-bottom: 15px;
-  text-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-}
-
-.list-container,
-.history-section {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 20px;
-  padding: 30px;
-  margin-bottom: 40px;
-  min-height: 400px;
-  border: 1px solid rgba(255,255,255,0.3);
-  box-shadow: 
-    0 20px 40px rgba(0,0,0,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.6);
-}
-
-.list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-}
-
-.queue-list {
-  list-style: none;
-}
-
-.queue-item {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  margin-bottom: 15px;
-  padding: 25px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  box-shadow: 
-    0 8px 20px rgba(0,0,0,0.08),
-    0 0 0 1px rgba(255,255,255,0.2);
-  cursor: grab;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  position: relative;
-  border: 2px solid transparent;
-  overflow: hidden;
-}
-
-.queue-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-  transition: left 0.7s;
-}
-
-.queue-item:hover::before {
-  left: 100%;
-}
-
-.queue-item.warehouse {
-  border-left: 6px solid #3b82f6;
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-}
-
-.queue-item.warehouse .queue-name {
-  color: #1d4ed8;
-  font-weight: 700;
-}
-
-.queue-item.regular {
-  border-left: 6px solid #f59e0b;
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-}
-
-.queue-item.regular .queue-name {
-  color: #d97706;
-  font-weight: 700;
-}
-
-.queue-item:hover {
-  transform: translateY(-5px) scale(1.01);
-  box-shadow: 
-    0 20px 40px rgba(0,0,0,0.12),
-    0 0 0 1px rgba(255,255,255,0.3);
-}
-
-.queue-item.dragging {
-  opacity: 0.8;
-  transform: rotate(3deg) scale(1.05);
-  cursor: grabbing;
-  z-index: 1000;
-  box-shadow: 0 25px 50px rgba(0,0,0,0.2);
-}
-
-.queue-number {
-  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-  color: white;
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  margin-right: 20px;
-  font-size: 18px;
-  box-shadow: 0 8px 20px rgba(31, 41, 55, 0.3);
-}
-
-.queue-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.queue-name {
-  font-size: 20px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.queue-details {
-  font-size: 14px;
-  color: #64748b;
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  font-weight: 500;
-}
-
-.queue-type {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.queue-type.warehouse {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  color: #1e40af;
-}
-
-.queue-type.regular {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  color: #b45309;
-}
-
-.additional-items-display {
-  font-size: 13px;
-  color: #475569;
-  margin-top: 8px;
-  font-style: italic;
-  font-weight: 500;
-}
-
-.queue-actions {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-}
-
-.queue-checkbox {
-  transform: scale(1.5);
-  cursor: pointer;
-  accent-color: #10b981;
-}
-
-.delete-btn {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 35px;
-  height: 35px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-.delete-btn:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  transform: scale(1.1) rotate(180deg);
-  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
-}
-
-.drag-handle {
-  margin-left: 15px;
-  color: #cbd5e1;
-  cursor: grab;
-  font-size: 20px;
-  transition: color 0.3s;
-}
-
-.drag-handle:hover {
-  color: #64748b;
-}
-
-.drag-handle:active {
-  cursor: grabbing;
-}
-
-.empty-state {
-  text-align: center;
-  color: #64748b;
-  font-style: italic;
-  padding: 60px;
-  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-  border-radius: 16px;
-  border: 2px dashed #cbd5e1;
-}
-
-.history-item {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  padding: 25px;
-  border-radius: 16px;
-  margin-bottom: 20px;
-  border-left: 6px solid #10b981;
-  box-shadow: 
-    0 8px 20px rgba(0,0,0,0.08),
-    0 0 0 1px rgba(255,255,255,0.2);
-  transition: all 0.3s ease;
-}
-
-.history-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-}
-
-.history-date {
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 12px;
-  font-size: 18px;
-}
-
-.history-details {
-  color: #475569;
-  font-size: 14px;
-  line-height: 1.7;
-  font-weight: 500;
-}
-
-.fade-in {
-  animation: fadeInUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.pulse {
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-
-.control-buttons {
-  position: absolute;
-  top: 25px;
-  right: 25px;
-  z-index: 10;
-  display: flex;
-  gap: 12px;
-}
-
-.control-btn {
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.2);
-  color: white;
-  padding: 10px 16px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.control-btn:hover {
-  background: rgba(255,255,255,0.25);
-  transform: translateY(-2px);
-}
-
-.control-btn.danger {
-  background: rgba(239,68,68,0.8);
-  border-color: rgba(239,68,68,1);
-}
-
-.control-btn.danger:hover {
-  background: rgba(220,38,38,0.9);
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 768px) {
-  .container {
-    margin: 10px;
-  }
-  
-  .main-content {
-    padding: 25px;
-  }
-  
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .stats-section {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-  }
-  
-  .header h1 {
-    font-size: 2.2em;
-  }
-  
-  .header {
-    padding: 30px 20px;
-  }
-  
-  .queue-details {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .item-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .timer-display {
-    font-size: 2.5em;
-  }
-  
-  .control-buttons {
-    position: static;
-    margin-top: 20px;
-    justify-content: center;
-  }
-}
-
-/* Loading animation */
-@keyframes shimmer {
-  0% { background-position: -468px 0; }
-  100% { background-position: 468px 0; }
-}
-
-.loading {
-  animation: shimmer 1.2s ease-in-out infinite;
-  background: linear-gradient(to right, #f6f7f8 8%, #edeef1 18%, #f6f7f8 33%);
-  background-size: 800px 104px;
-}
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        min-height: 100vh;
+        padding: 20px;
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    /* Animated background particles */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+        z-index: -1;
+        animation: backgroundShift 20s ease-in-out infinite;
+    }
+
+    @keyframes backgroundShift {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        33% { transform: translate(30px, -30px) rotate(120deg); }
+        66% { transform: translate(-20px, 20px) rotate(240deg); }
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        box-shadow: 
+            0 32px 64px rgba(0,0,0,0.12),
+            0 0 0 1px rgba(255,255,255,0.2);
+        overflow: hidden;
+        animation: containerFloat 6s ease-in-out infinite;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    @keyframes containerFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .header {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        color: white;
+        padding: 40px 30px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.1), transparent);
+        animation: headerRotate 15s linear infinite;
+    }
+
+    @keyframes headerRotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .header h1 {
+        font-size: 3em;
+        margin-bottom: 15px;
+        position: relative;
+        z-index: 2;
+        font-weight: 800;
+        letter-spacing: -1px;
+        background: linear-gradient(135deg, #ffffff, #a8edea, #fed6e3);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 2px 20px rgba(255,255,255,0.3);
+    }
+
+    .header p {
+        font-size: 1.2em;
+        opacity: 0.9;
+        position: relative;
+        z-index: 2;
+        font-weight: 300;
+    }
+
+    .main-content {
+        padding: 40px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+
+    .stats-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        padding: 30px;
+        border-radius: 20px;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: 
+            0 10px 25px rgba(0,0,0,0.08),
+            0 0 0 1px rgba(255,255,255,0.5),
+            inset 0 1px 0 rgba(255,255,255,0.6);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        transition: left 0.7s;
+    }
+
+    .stat-card:hover::before {
+        left: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 
+            0 25px 45px rgba(0,0,0,0.15),
+            0 0 0 1px rgba(255,255,255,0.6);
+    }
+
+    .stat-number {
+        font-size: 3.5em;
+        font-weight: 900;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .stat-label {
+        color: #64748b;
+        font-weight: 600;
+        font-size: 1.1em;
+        position: relative;
+        z-index: 2;
+    }
+
+    .input-section {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        padding: 35px;
+        border-radius: 20px;
+        margin-bottom: 40px;
+        border: 1px solid rgba(255,255,255,0.3);
+        box-shadow: 
+            0 20px 40px rgba(0,0,0,0.08),
+            inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+
+    .section-title {
+        font-size: 1.5em;
+        font-weight: 700;
+        margin-bottom: 25px;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #374151;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    input[type="text"],
+    select,
+    input[type="number"] {
+        padding: 16px 20px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 16px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        font-weight: 500;
+    }
+
+    input[type="text"]:focus,
+    select:focus,
+    input[type="number"]:focus {
+        border-color: #3b82f6;
+        box-shadow: 
+            0 0 0 4px rgba(59, 130, 246, 0.1),
+            0 10px 25px rgba(0,0,0,0.1);
+        outline: none;
+        transform: translateY(-2px);
+        background: #ffffff;
+    }
+
+    .additional-items {
+        background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 25px;
+        margin: 25px 0;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .additional-items h4 {
+        color: #1e293b;
+        margin-bottom: 20px;
+        font-size: 1.2em;
+        font-weight: 700;
+    }
+
+    .item-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+
+    .item-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 15px;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .item-checkbox::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+        transition: left 0.5s;
+    }
+
+    .item-checkbox:hover::before {
+        left: 100%;
+    }
+
+    .item-checkbox:hover {
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+    }
+
+    .item-checkbox input[type="checkbox"] {
+        transform: scale(1.3);
+        accent-color: #3b82f6;
+    }
+
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-left: auto;
+    }
+
+    .quantity-control input {
+        width: 60px;
+        text-align: center;
+        padding: 8px;
+    }
+
+    .btn {
+        padding: 16px 24px;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover::before {
+        width: 300px;
+        height: 300px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+        color: white;
+        margin-right: 15px;
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-success:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4);
+    }
+
+    .timer-section {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        padding: 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        text-align: center;
+        display: none;
+        box-shadow: 0 20px 40px rgba(245, 158, 11, 0.3);
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .timer-display {
+        font-size: 4em;
+        font-weight: 900;
+        color: white;
+        margin-bottom: 15px;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    }
+
+    .list-container,
+    .history-section {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 40px;
+        min-height: 400px;
+        border: 1px solid rgba(255,255,255,0.3);
+        box-shadow: 
+            0 20px 40px rgba(0,0,0,0.08),
+            inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+
+    .list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .queue-list {
+        list-style: none;
+    }
+
+    .queue-item {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        margin-bottom: 15px;
+        padding: 25px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        box-shadow: 
+            0 8px 20px rgba(0,0,0,0.08),
+            0 0 0 1px rgba(255,255,255,0.2);
+        cursor: grab;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        border: 2px solid transparent;
+        overflow: hidden;
+    }
+
+    .queue-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        transition: left 0.7s;
+    }
+
+    .queue-item:hover::before {
+        left: 100%;
+    }
+
+    .queue-item.warehouse {
+        border-left: 6px solid #3b82f6;
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    }
+
+    .queue-item.warehouse .queue-name {
+        color: #1d4ed8;
+        font-weight: 700;
+    }
+
+    .queue-item.regular {
+        border-left: 6px solid #f59e0b;
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    }
+
+    .queue-item.regular .queue-name {
+        color: #d97706;
+        font-weight: 700;
+    }
+
+    .queue-item:hover {
+        transform: translateY(-5px) scale(1.01);
+        box-shadow: 
+            0 20px 40px rgba(0,0,0,0.12),
+            0 0 0 1px rgba(255,255,255,0.3);
+    }
+
+    .queue-item.dragging {
+        opacity: 0.8;
+        transform: rotate(3deg) scale(1.05);
+        cursor: grabbing;
+        z-index: 1000;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+    }
+
+    .queue-number {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        color: white;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        margin-right: 20px;
+        font-size: 18px;
+        box-shadow: 0 8px 20px rgba(31, 41, 55, 0.3);
+    }
+
+    .queue-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .queue-name {
+        font-size: 20px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .queue-details {
+        font-size: 14px;
+        color: #64748b;
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        font-weight: 500;
+    }
+
+    .queue-type {
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .queue-type.warehouse {
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        color: #1e40af;
+    }
+
+    .queue-type.regular {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: #b45309;
+    }
+
+    .additional-items-display {
+        font-size: 13px;
+        color: #475569;
+        margin-top: 8px;
+        font-style: italic;
+        font-weight: 500;
+    }
+
+    .queue-actions {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .queue-checkbox {
+        transform: scale(1.5);
+        cursor: pointer;
+        accent-color: #10b981;
+    }
+
+    .delete-btn {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .delete-btn:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        transform: scale(1.1) rotate(180deg);
+        box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .drag-handle {
+        margin-left: 15px;
+        color: #cbd5e1;
+        cursor: grab;
+        font-size: 20px;
+        transition: color 0.3s;
+    }
+
+    .drag-handle:hover {
+        color: #64748b;
+    }
+
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+
+    .empty-state {
+        text-align: center;
+        color: #64748b;
+        font-style: italic;
+        padding: 60px;
+        background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+        border-radius: 16px;
+        border: 2px dashed #cbd5e1;
+    }
+
+    .history-item {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        padding: 25px;
+        border-radius: 16px;
+        margin-bottom: 20px;
+        border-left: 6px solid #10b981;
+        box-shadow: 
+            0 8px 20px rgba(0,0,0,0.08),
+            0 0 0 1px rgba(255,255,255,0.2);
+        transition: all 0.3s ease;
+    }
+
+    .history-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    }
+
+    .history-date {
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 12px;
+        font-size: 18px;
+    }
+
+    .history-details {
+        color: #475569;
+        font-size: 14px;
+        line-height: 1.7;
+        font-weight: 500;
+    }
+
+    .fade-in {
+        animation: fadeInUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .control-buttons {
+        position: absolute;
+        top: 25px;
+        right: 25px;
+        z-index: 10;
+        display: flex;
+        gap: 12px;
+    }
+
+    .control-btn {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: white;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .control-btn:hover {
+        background: rgba(255,255,255,0.25);
+        transform: translateY(-2px);
+    }
+
+    .control-btn.danger {
+        background: rgba(239,68,68,0.8);
+        border-color: rgba(239,68,68,1);
+    }
+
+    .control-btn.danger:hover {
+        background: rgba(220,38,38,0.9);
+    }
+
+    /* Filter Section */
+    .filter-section {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        padding: 20px;
+        border-radius: 16px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+        border: 1px solid rgba(255,255,255,0.3);
+        box-shadow: 
+            0 10px 25px rgba(0,0,0,0.08),
+            inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .filter-group select,
+    .filter-group input {
+        padding: 10px 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    /* Monthly Stats */
+    .monthly-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 30px;
+    }
+
+    .monthly-stat-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        padding: 25px;
+        border-radius: 16px;
+        box-shadow: 
+            0 10px 25px rgba(0,0,0,0.08),
+            0 0 0 1px rgba(255,255,255,0.5);
+        transition: all 0.3s ease;
+    }
+
+    .monthly-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+    }
+
+    .monthly-stat-title {
+        font-size: 1.2em;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .monthly-stat-value {
+        font-size: 2.5em;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .monthly-stat-details {
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    /* Upgrade Section */
+    .upgrade-section {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        padding: 25px;
+        border-radius: 16px;
+        margin-top: 30px;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        box-shadow: 
+            0 10px 25px rgba(245, 158, 11, 0.1),
+            inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+
+    .upgrade-content {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .upgrade-text {
+        flex: 1;
+    }
+
+    .upgrade-text h3 {
+        color: #92400e;
+        margin-bottom: 10px;
+    }
+
+    .upgrade-text p {
+        color: #78350f;
+        margin-bottom: 15px;
+    }
+
+    .upgrade-btn {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .upgrade-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+        .container {
+            margin: 10px;
+        }
+        
+        .main-content {
+            padding: 25px;
+        }
+        
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .stats-section {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+        }
+        
+        .header {
+            padding: 30px 20px;
+        }
+        
+        .queue-details {
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .item-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .timer-display {
+            font-size: 2.5em;
+        }
+        
+        .control-buttons {
+            position: static;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .filter-section {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .upgrade-content {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+
+    /* Loading animation */
+    @keyframes shimmer {
+        0% { background-position: -468px 0; }
+        100% { background-position: 468px 0; }
+    }
+
+    .loading {
+        animation: shimmer 1.2s ease-in-out infinite;
+        background: linear-gradient(to right, #f6f7f8 8%, #edeef1 18%, #f6f7f8 33%);
+        background-size: 800px 104px;
+    }
     </style>
 </head>
 <body>
@@ -798,6 +936,63 @@ input[type="number"]:focus {
                 </div>
             </div>
 
+            <!-- Monthly Statistics Section -->
+            <div class="input-section">
+                <h3 style="margin-bottom: 20px; color: #495057;">📊 Statistik Bulanan</h3>
+                
+                <div class="filter-section">
+                    <div class="filter-group">
+                        <label for="monthFilter">Bulan:</label>
+                        <select id="monthFilter">
+                            <option value="all">Semua Bulan</option>
+                            <option value="1">Januari</option>
+                            <option value="2">Februari</option>
+                            <option value="3">Maret</option>
+                            <option value="4">April</option>
+                            <option value="5">Mei</option>
+                            <option value="6">Juni</option>
+                            <option value="7">Juli</option>
+                            <option value="8">Agustus</option>
+                            <option value="9">September</option>
+                            <option value="10">Oktober</option>
+                            <option value="11">November</option>
+                            <option value="12">Desember</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="yearFilter">Tahun:</label>
+                        <select id="yearFilter">
+                            <option value="2023">2023</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="filterMonthlyStats()">Filter</button>
+                </div>
+                
+                <div class="monthly-stats" id="monthlyStats">
+                    <div class="monthly-stat-card">
+                        <div class="monthly-stat-title">📦 Total Pengiriman</div>
+                        <div class="monthly-stat-value" id="monthlyTotal">0</div>
+                        <div class="monthly-stat-details">Total pengiriman bulan ini</div>
+                    </div>
+                    
+                    <div class="monthly-stat-card">
+                        <div class="monthly-stat-title">🏬 Gudang</div>
+                        <div class="monthly-stat-value" id="monthlyWarehouse">0</div>
+                        <div class="monthly-stat-details">Pengiriman barang gudang</div>
+                    </div>
+                    
+                    <div class="monthly-stat-card">
+                        <div class="monthly-stat-title">🚛 Reguler</div>
+                        <div class="monthly-stat-value" id="monthlyRegular">0</div>
+                        <div class="monthly-stat-details">Pengiriman reguler</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Input Section -->
             <div class="input-section">
                 <h3 style="margin-bottom: 20px; color: #495057;">➕ Tambah Antrian Baru</h3>
@@ -820,41 +1015,41 @@ input[type="number"]:focus {
                     </div>
                 </div>
 
-          <div class="additional-items">
-    <h4>🛒 Barang Tambahan</h4>
-    <div class="item-grid">
-        <label class="item-checkbox">
-            <input type="checkbox" value="galon-lemineral" data-name="Galon Le Mineral">
-            <span>🧊 Galon Le Mineral</span>
-            <div class="quantity-control">
-                <input type="number" min="1" value="1" class="item-quantity" data-for="galon-lemineral" style="display: none;">
-            </div>
-        </label>
-        <label class="item-checkbox">
-            <input type="checkbox" value="galon-aqua" data-name="Galon Aqua">
-            <span>💧 Galon Aqua</span>
-            <div class="quantity-control">
-                <input type="number" min="1" value="1" class="item-quantity" data-for="galon-aqua" style="display: none;">
-            </div>
-        </label>
-        <label class="item-checkbox">
-            <input type="checkbox" value="eskrim-walls" data-name="Es Krim Walls">
-            <span>🍦 Es Krim Walls</span>
-        </label>
-        <label class="item-checkbox">
-            <input type="checkbox" value="eskrim-magnum" data-name="Es Krim Magnum">
-            <span>🍨 Es Krim Magnum</span>
-        </label>
-        <label class="item-checkbox">
-            <input type="checkbox" value="eskrim-campina" data-name="Es Krim Campina">
-            <span>🍧 Es Krim Campina</span>
-        </label>
-        <label class="item-checkbox">
-            <input type="checkbox" value="eskrim-gloco" data-name="Es Krim Gloco">
-            <span>🍨 Es Krim Gloco</span>
-        </label>
-    </div>
-</div>
+                <div class="additional-items">
+                    <h4>🛒 Barang Tambahan</h4>
+                    <div class="item-grid">
+                        <label class="item-checkbox">
+                            <input type="checkbox" value="galon-lemineral" data-name="Galon Le Mineral">
+                            <span>🧊 Galon Le Mineral</span>
+                            <div class="quantity-control">
+                                <input type="number" min="1" value="1" class="item-quantity" data-for="galon-lemineral" style="display: none;">
+                            </div>
+                        </label>
+                        <label class="item-checkbox">
+                            <input type="checkbox" value="galon-aqua" data-name="Galon Aqua">
+                            <span>💧 Galon Aqua</span>
+                            <div class="quantity-control">
+                                <input type="number" min="1" value="1" class="item-quantity" data-for="galon-aqua" style="display: none;">
+                            </div>
+                        </label>
+                        <label class="item-checkbox">
+                            <input type="checkbox" value="eskrim-walls" data-name="Es Krim Walls">
+                            <span>🍦 Es Krim Walls</span>
+                        </label>
+                        <label class="item-checkbox">
+                            <input type="checkbox" value="eskrim-magnum" data-name="Es Krim Magnum">
+                            <span>🍨 Es Krim Magnum</span>
+                        </label>
+                        <label class="item-checkbox">
+                            <input type="checkbox" value="eskrim-campina" data-name="Es Krim Campina">
+                            <span>🍧 Es Krim Campina</span>
+                        </label>
+                        <label class="item-checkbox">
+                            <input type="checkbox" value="eskrim-gloco" data-name="Es Krim Gloco">
+                            <span>🍨 Es Krim Gloco</span>
+                        </label>
+                    </div>
+                </div>
 
                 <div style="margin-top: 20px;">
                     <button class="btn btn-primary" onclick="addToQueue()">➕ Tambah ke Antrian</button>
@@ -889,49 +1084,80 @@ input[type="number"]:focus {
                     <p style="color: #6c757d; font-style: italic; text-align: center;">Belum ada riwayat sesi pengiriman.</p>
                 </div>
             </div>
+
+            <!-- Upgrade Section -->
+            <div class="upgrade-section">
+                <div class="upgrade-content">
+                    <div class="upgrade-text">
+                        <h3>🚀 Upgrade ke Versi Pro</h3>
+                        <p>Dapatkan fitur tambahan seperti laporan bulanan lengkap, notifikasi real-time, dan integrasi dengan sistem lainnya.</p>
+                    </div>
+                    <button class="upgrade-btn" onclick="showUpgradeModal()">Upgrade Sekarang</button>
+                </div>
+            </div>
         </div>
     </div>
-<!-- Tambahkan di body HTML Anda -->
-<canvas id="faviconCanvas" width="32" height="32" style="display:none;"></canvas>
-<script>
-    // Generate simple delivery icon
-    const canvas = document.getElementById('faviconCanvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Background
-    ctx.fillStyle = '#3498db';
-    ctx.fillRect(0, 0, 32, 32);
-    
-    // Truck body
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(5, 10, 22, 12);
-    
-    // Truck cabin
-    ctx.fillRect(20, 7, 7, 8);
-    
-    // Wheels
-    ctx.fillStyle = '#000000';
-    ctx.beginPath();
-    ctx.arc(10, 25, 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(22, 25, 4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Convert to favicon
-    const link = document.createElement('link');
-    link.type = 'image/jpg';
-    link.rel = 'icon';
-    link.href = canvas.toDataURL('image/jpeg');
-    document.getElementsByTagName('head')[0].appendChild(link);
 
- 
+    <!-- Upgrade Modal -->
+    <div id="upgradeModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 16px; max-width: 500px; width: 90%;">
+            <h2 style="margin-bottom: 20px;">🚀 Upgrade ke Versi Pro</h2>
+            <p style="margin-bottom: 20px;">Dengan versi Pro, Anda akan mendapatkan:</p>
+            <ul style="margin-bottom: 25px; padding-left: 20px;">
+                <li style="margin-bottom: 10px;">📊 Laporan bulanan lengkap dengan grafik</li>
+                <li style="margin-bottom: 10px;">🔔 Notifikasi real-time</li>
+                <li style="margin-bottom: 10px;">📱 Akses mobile aplikasi</li>
+                <li style="margin-bottom: 10px;">🔄 Integrasi dengan sistem lainnya</li>
+                <li style="margin-bottom: 10px;">☁️ Backup data otomatis ke cloud</li>
+            </ul>
+            <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                <button onclick="hideUpgradeModal()" style="padding: 10px 20px; border: 1px solid #ddd; border-radius: 8px; background: white; cursor: pointer;">Nanti Saja</button>
+                <button onclick="proceedUpgrade()" style="padding: 10px 20px; border: none; border-radius: 8px; background: #3b82f6; color: white; cursor: pointer;">Upgrade Sekarang</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tambahkan di body HTML Anda -->
+    <canvas id="faviconCanvas" width="32" height="32" style="display:none;"></canvas>
+    <script>
+        // Generate simple delivery icon
+        const canvas = document.getElementById('faviconCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Background
+        ctx.fillStyle = '#3498db';
+        ctx.fillRect(0, 0, 32, 32);
+        
+        // Truck body
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(5, 10, 22, 12);
+        
+        // Truck cabin
+        ctx.fillRect(20, 7, 7, 8);
+        
+        // Wheels
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(10, 25, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(22, 25, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Convert to favicon
+        const link = document.createElement('link');
+        link.type = 'image/jpg';
+        link.rel = 'icon';
+        link.href = canvas.toDataURL('image/jpeg');
+        document.getElementsByTagName('head')[0].appendChild(link);
+
         let deliveryQueue = [];
         let timerInterval;
         let startTime;
         let isTimerRunning = false;
         let sessionHistory = [];
         let dailyCompletedCount = 0;
+        let monthlyStats = {};
 
         // Load data from localStorage
         function loadData() {
@@ -939,6 +1165,8 @@ input[type="number"]:focus {
             const savedHistory = localStorage.getItem('sessionHistory');
             const savedDailyCount = localStorage.getItem('dailyCompletedCount');
             const savedDate = localStorage.getItem('lastSaveDate');
+            const savedMonthlyStats = localStorage.getItem('monthlyStats');
+            const savedTimer = localStorage.getItem('timerData');
             
             if (savedQueue) {
                 deliveryQueue = JSON.parse(savedQueue);
@@ -946,6 +1174,10 @@ input[type="number"]:focus {
             
             if (savedHistory) {
                 sessionHistory = JSON.parse(savedHistory);
+            }
+            
+            if (savedMonthlyStats) {
+                monthlyStats = JSON.parse(savedMonthlyStats);
             }
             
             // Reset daily count if it's a new day
@@ -956,6 +1188,49 @@ input[type="number"]:focus {
             } else if (savedDailyCount) {
                 dailyCompletedCount = parseInt(savedDailyCount);
             }
+            
+            // Load timer if it was running
+            if (savedTimer) {
+                const timerData = JSON.parse(savedTimer);
+                if (timerData.isRunning) {
+                    // Calculate the elapsed time since the timer was last updated
+                    const lastUpdateTime = timerData.lastUpdateTime || Date.now();
+                    const elapsedSinceLastUpdate = Date.now() - lastUpdateTime;
+                    const totalElapsed = timerData.elapsed + elapsedSinceLastUpdate;
+                    
+                    startTime = Date.now() - totalElapsed;
+                    isTimerRunning = true;
+                    document.getElementById('startBtn').style.display = 'none';
+                    document.getElementById('stopBtn').style.display = 'inline-block';
+                    document.getElementById('timerSection').style.display = 'block';
+                    document.getElementById('timerSection').classList.add('pulse');
+                    timerInterval = setInterval(updateTimer, 1000);
+                    
+                    // Immediately update the timer display
+                    updateTimer();
+                }
+            }
+            
+            // Initialize monthly stats if empty
+            if (Object.keys(monthlyStats).length === 0) {
+                initializeMonthlyStats();
+            }
+        }
+
+        // Initialize monthly stats
+        function initializeMonthlyStats() {
+            const currentYear = new Date().getFullYear();
+            for (let year = 2023; year <= 2025; year++) {
+                monthlyStats[year] = {};
+                for (let month = 1; month <= 12; month++) {
+                    monthlyStats[year][month] = {
+                        total: 0,
+                        warehouse: 0,
+                        regular: 0
+                    };
+                }
+            }
+            saveData();
         }
 
         // Save data to localStorage
@@ -964,6 +1239,19 @@ input[type="number"]:focus {
             localStorage.setItem('sessionHistory', JSON.stringify(sessionHistory));
             localStorage.setItem('dailyCompletedCount', dailyCompletedCount.toString());
             localStorage.setItem('lastSaveDate', new Date().toDateString());
+            localStorage.setItem('monthlyStats', JSON.stringify(monthlyStats));
+            
+            // Save timer state with more accurate data
+            if (isTimerRunning) {
+                const timerData = {
+                    isRunning: true,
+                    elapsed: Date.now() - startTime,
+                    lastUpdateTime: Date.now() // Add timestamp of last update
+                };
+                localStorage.setItem('timerData', JSON.stringify(timerData));
+            } else {
+                localStorage.removeItem('timerData');
+            }
         }
 
         // Show/hide quantity inputs when checkbox is clicked
@@ -1014,10 +1302,14 @@ input[type="number"]:focus {
                 destination: destination,
                 additionalItems: selectedItems,
                 checked: false,
-                addedTime: new Date().toLocaleTimeString('id-ID')
+                addedTime: new Date().toLocaleTimeString('id-ID'),
+                addedDate: new Date()
             };
             
             deliveryQueue.push(newQueueItem);
+            
+            // Update monthly stats
+            updateMonthlyStats(newQueueItem);
             
             // Clear form
             document.getElementById('customerName').value = '';
@@ -1044,6 +1336,52 @@ input[type="number"]:focus {
             }, 100);
         }
 
+        // Update monthly statistics when new item is added
+        function updateMonthlyStats(item) {
+            const date = new Date(item.addedDate);
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            
+            monthlyStats[year][month].total++;
+            
+            if (item.queueType === 'warehouse') {
+                monthlyStats[year][month].warehouse++;
+            } else {
+                monthlyStats[year][month].regular++;
+            }
+            
+            saveData();
+        }
+
+        // Filter monthly stats based on selected month and year
+        function filterMonthlyStats() {
+            const month = document.getElementById('monthFilter').value;
+            const year = document.getElementById('yearFilter').value;
+            
+            if (month === 'all') {
+                // Show yearly totals
+                let yearlyTotal = 0;
+                let yearlyWarehouse = 0;
+                let yearlyRegular = 0;
+                
+                for (let m = 1; m <= 12; m++) {
+                    yearlyTotal += monthlyStats[year][m].total;
+                    yearlyWarehouse += monthlyStats[year][m].warehouse;
+                    yearlyRegular += monthlyStats[year][m].regular;
+                }
+                
+                document.getElementById('monthlyTotal').textContent = yearlyTotal;
+                document.getElementById('monthlyWarehouse').textContent = yearlyWarehouse;
+                document.getElementById('monthlyRegular').textContent = yearlyRegular;
+            } else {
+                // Show monthly totals
+                const monthInt = parseInt(month);
+                document.getElementById('monthlyTotal').textContent = monthlyStats[year][monthInt].total;
+                document.getElementById('monthlyWarehouse').textContent = monthlyStats[year][monthInt].warehouse;
+                document.getElementById('monthlyRegular').textContent = monthlyStats[year][monthInt].regular;
+            }
+        }
+
         function removeFromQueue(id) {
             if (confirm('Yakin ingin menghapus antrian ini?')) {
                 deliveryQueue = deliveryQueue.filter(item => item.id !== id);
@@ -1062,80 +1400,80 @@ input[type="number"]:focus {
             }
         }
 
-function updateQueueList() {
-    const queueList = document.getElementById('queueList');
-    
-    if (deliveryQueue.length === 0) {
-        queueList.innerHTML = `
-            <li class="empty-state">
-                📦 Belum ada antrian pengiriman.<br>
-                Silakan tambahkan antrian baru di atas.
-            </li>
-        `;
-        return;
-    }
+        function updateQueueList() {
+            const queueList = document.getElementById('queueList');
+            
+            if (deliveryQueue.length === 0) {
+                queueList.innerHTML = `
+                    <li class="empty-state">
+                        📦 Belum ada antrian pengiriman.<br>
+                        Silakan tambahkan antrian baru di atas.
+                    </li>
+                `;
+                return;
+            }
 
-    queueList.innerHTML = deliveryQueue.map((item, index) => {
-        // Determine icons for additional items
-        let nameIcons = '';
-        let additionalText = '';
-        
-        if (item.additionalItems.length > 0) {
-            const galonItems = item.additionalItems.filter(ai => ai.value.includes('galon'));
-            const iceCreamItems = item.additionalItems.filter(ai => ai.value.includes('eskrim'));
-            
-            // Add water drop icons for galon items
-            if (galonItems.length > 0) {
-                const totalGalon = galonItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
-                nameIcons += '💧'.repeat(Math.min(totalGalon, 5));
-                if (totalGalon > 5) {
-                    nameIcons += `+${totalGalon - 5}`;
+            queueList.innerHTML = deliveryQueue.map((item, index) => {
+                // Determine icons for additional items
+                let nameIcons = '';
+                let additionalText = '';
+                
+                if (item.additionalItems.length > 0) {
+                    const galonItems = item.additionalItems.filter(ai => ai.value.includes('galon'));
+                    const iceCreamItems = item.additionalItems.filter(ai => ai.value.includes('eskrim'));
+                    
+                    // Add water drop icons for galon items
+                    if (galonItems.length > 0) {
+                        const totalGalon = galonItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                        nameIcons += '💧'.repeat(Math.min(totalGalon, 5));
+                        if (totalGalon > 5) {
+                            nameIcons += `+${totalGalon - 5}`;
+                        }
+                    }
+                    
+                    // Add ice cream icon if any ice cream items exist
+                    if (iceCreamItems.length > 0) {
+                        nameIcons += '🍦';
+                    }
+                    
+                    // Format additional items text
+                    additionalText = item.additionalItems.map(ai => {
+                        if (ai.quantity) {
+                            return `${ai.name} (${ai.quantity})`;
+                        }
+                        return ai.name;
+                    }).join(', ');
                 }
-            }
-            
-            // Add ice cream icon if any ice cream items exist
-            if (iceCreamItems.length > 0) {
-                nameIcons += '🍦';
-            }
-            
-            // Format additional items text
-            additionalText = item.additionalItems.map(ai => {
-                if (ai.quantity) {
-                    return `${ai.name} (${ai.quantity})`;
-                }
-                return ai.name;
-            }).join(', ');
+                
+                return `
+                    <li class="queue-item ${item.queueType}" draggable="true" data-id="${item.id}">
+                        <div class="queue-number">${index + 1}</div>
+                        <div class="queue-info">
+                            <div class="queue-name">
+                                ${item.customerName}
+                                ${nameIcons ? `<span style="margin-left:5px;">${nameIcons}</span>` : ''}
+                            </div>
+                            <div class="queue-details">
+                                <span class="queue-type ${item.queueType}">
+                                    ${item.queueType === 'warehouse' ? '🏬 Barang Gudang' : '📦 Reguler'}
+                                </span>
+                                <span>📍 ${item.destination}</span>
+                                <span>⏰ ${item.addedTime}</span>
+                            </div>
+                            ${additionalText ? `<div class="additional-items-display">${additionalText}</div>` : ''}
+                        </div>
+                        <div class="queue-actions">
+                            <input type="checkbox" class="queue-checkbox" ${item.checked ? 'checked' : ''} 
+                                   onchange="toggleCheck(${item.id})" title="Tandai selesai">
+                            <button class="delete-btn" onclick="removeFromQueue(${item.id})" title="Hapus antrian">×</button>
+                            <div class="drag-handle">⋮⋮</div>
+                        </div>
+                    </li>
+                `;
+            }).join('');
+
+            setupDragAndDrop();
         }
-        
-        return `
-            <li class="queue-item ${item.queueType}" draggable="true" data-id="${item.id}">
-                <div class="queue-number">${index + 1}</div>
-                <div class="queue-info">
-                    <div class="queue-name">
-                        ${item.customerName}
-                        ${nameIcons ? `<span style="margin-left:5px;">${nameIcons}</span>` : ''}
-                    </div>
-                    <div class="queue-details">
-                        <span class="queue-type ${item.queueType}">
-                            ${item.queueType === 'warehouse' ? '🏬 Barang Gudang' : '📦 Reguler'}
-                        </span>
-                        <span>📍 ${item.destination}</span>
-                        <span>⏰ ${item.addedTime}</span>
-                    </div>
-                    ${additionalText ? `<div class="additional-items-display">${additionalText}</div>` : ''}
-                </div>
-                <div class="queue-actions">
-                    <input type="checkbox" class="queue-checkbox" ${item.checked ? 'checked' : ''} 
-                           onchange="toggleCheck(${item.id})" title="Tandai selesai">
-                    <button class="delete-btn" onclick="removeFromQueue(${item.id})" title="Hapus antrian">×</button>
-                    <div class="drag-handle">⋮⋮</div>
-                </div>
-            </li>
-        `;
-    }).join('');
-
-    setupDragAndDrop();
-}
 
         function updateStats() {
             const total = deliveryQueue.length;
@@ -1222,6 +1560,8 @@ function updateQueueList() {
                 
                 // Add pulse animation to timer
                 document.getElementById('timerSection').classList.add('pulse');
+                
+                saveData();
             } else if (deliveryQueue.length === 0) {
                 alert('Tidak ada antrian untuk memulai sesi!');
             }
@@ -1236,7 +1576,38 @@ function updateQueueList() {
                 
                 const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 document.getElementById('timerDisplay').textContent = timeString;
+                
+                // Update favicon with timer
+                updateFaviconWithTimer(timeString);
+                
+                // Save timer state periodically
+                if (seconds % 5 === 0) { // Save every 5 seconds
+                    saveData();
+                }
             }
+        }
+
+        function updateFaviconWithTimer(time) {
+            const canvas = document.getElementById('faviconCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, 32, 32);
+            
+            // Background
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(0, 0, 32, 32);
+            
+            // Draw time (just minutes:seconds)
+            const displayTime = time.split(':').slice(1).join(':');
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 8px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(displayTime, 16, 20);
+            
+            // Update favicon
+            const link = document.querySelector('link[rel="icon"]');
+            link.href = canvas.toDataURL('image/jpeg');
         }
 
         function stopTimer() {
@@ -1248,6 +1619,9 @@ function updateQueueList() {
                 document.getElementById('stopBtn').style.display = 'none';
                 document.getElementById('timerSection').style.display = 'none';
                 document.getElementById('timerSection').classList.remove('pulse');
+                
+                // Reset favicon
+                resetFavicon();
                 
                 // Save to history
                 if (deliveryQueue.length > 0) {
@@ -1284,6 +1658,35 @@ function updateQueueList() {
                     alert(`Sesi selesai! ${completedItems.length} pengiriman telah diselesaikan dari total ${sessionData.totalQueue} antrian.`);
                 }
             }
+        }
+
+        function resetFavicon() {
+            const canvas = document.getElementById('faviconCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#3498db';
+            ctx.fillRect(0, 0, 32, 32);
+            
+            // Truck body
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(5, 10, 22, 12);
+            
+            // Truck cabin
+            ctx.fillRect(20, 7, 7, 8);
+            
+            // Wheels
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(10, 25, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(22, 25, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Update favicon
+            const link = document.querySelector('link[rel="icon"]');
+            link.href = canvas.toDataURL('image/jpeg');
         }
 
         function updateHistory() {
@@ -1330,6 +1733,8 @@ function updateQueueList() {
                 deliveryQueue = [];
                 sessionHistory = [];
                 dailyCompletedCount = 0;
+                monthlyStats = {};
+                initializeMonthlyStats();
                 updateQueueList();
                 updateHistory();
                 updateStats();
@@ -1337,52 +1742,62 @@ function updateQueueList() {
             }
         }
 
-       
+        function exportToExcel() {
+            // Prepare data for export
+            const exportData = deliveryQueue.map((item, index) => {
+                const additionalItems = item.additionalItems.map(ai => {
+                    return ai.quantity ? `${ai.name} (${ai.quantity})` : ai.name;
+                }).join(', ');
+                
+                return {
+                    'No': index + 1,
+                    'Nama Pelanggan': item.customerName,
+                    'Tipe Antrian': item.queueType === 'warehouse' ? 'Barang Gudang' : 'Reguler',
+                    'Tujuan Pengiriman': item.destination,
+                    'Barang Tambahan': additionalItems || '-',
+                    'Waktu Ditambahkan': item.addedTime,
+                    'Status': item.checked ? 'Selesai' : 'Dalam Antrian'
+                };
+            });
 
-function exportToExcel() {
-    // Prepare data for export
-    const exportData = deliveryQueue.map((item, index) => {
-        const additionalItems = item.additionalItems.map(ai => {
-            return ai.quantity ? `${ai.name} (${ai.quantity})` : ai.name;
-        }).join(', ');
-        
-        return {
-            'No': index + 1,
-            'Nama Pelanggan': item.customerName,
-            'Tipe Antrian': item.queueType === 'warehouse' ? 'Barang Gudang' : 'Reguler',
-            'Tujuan Pengiriman': item.destination,
-            'Barang Tambahan': additionalItems || '-',
-            'Waktu Ditambahkan': item.addedTime,
-            'Status': item.checked ? 'Selesai' : 'Dalam Antrian'
-        };
-    });
+            // Create worksheet
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            
+            // Set column widths
+            ws['!cols'] = [
+                { wch: 5 },   // No
+                { wch: 25 },  // Nama Pelanggan
+                { wch: 15 },  // Tipe Antrian
+                { wch: 30 },  // Tujuan Pengiriman
+                { wch: 40 },  // Barang Tambahan
+                { wch: 20 },  // Waktu Ditambahkan
+                { wch: 15 }   // Status
+            ];
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Antrian Pengiriman");
+            
+            // Generate current date for filename
+            const today = new Date();
+            const dateString = today.toISOString().split('T')[0];
+            
+            // Export to Excel
+            XLSX.writeFile(wb, `Antrian_Pengiriman_${dateString}.xlsx`);
+        }
 
-    // Create worksheet
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    
-    // Set column widths
-    ws['!cols'] = [
-        { wch: 5 },   // No
-        { wch: 25 },  // Nama Pelanggan
-        { wch: 15 },  // Tipe Antrian
-        { wch: 30 },  // Tujuan Pengiriman
-        { wch: 40 },  // Barang Tambahan
-        { wch: 20 },  // Waktu Ditambahkan
-        { wch: 15 }   // Status
-    ];
-    
-    // Create workbook
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Antrian Pengiriman");
-    
-    // Generate current date for filename
-    const today = new Date();
-    const dateString = today.toISOString().split('T')[0];
-    
-    // Export to Excel
-    XLSX.writeFile(wb, `Antrian_Pengiriman_${dateString}.xlsx`);
-}
+        function showUpgradeModal() {
+            document.getElementById('upgradeModal').style.display = 'flex';
+        }
 
+        function hideUpgradeModal() {
+            document.getElementById('upgradeModal').style.display = 'none';
+        }
+
+        function proceedUpgrade() {
+            hideUpgradeModal();
+            alert('Terima kasih atas minat Anda! Fitur upgrade sedang dalam pengembangan.');
+        }
 
         // Enter key support for inputs
         document.getElementById('customerName').addEventListener('keypress', function(e) {
@@ -1397,6 +1812,24 @@ function exportToExcel() {
             }
         });
 
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+Enter or Cmd+Enter to add to queue
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                addToQueue();
+            }
+            
+            // Ctrl+S or Cmd+S to start/stop timer
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                if (isTimerRunning) {
+                    stopTimer();
+                } else {
+                    startTimer();
+                }
+            }
+        });
+
         // Auto-save every 30 seconds
         setInterval(saveData, 30000);
 
@@ -1404,16 +1837,22 @@ function exportToExcel() {
         window.addEventListener('load', function() {
             const header = document.querySelector('.header');
             const controlButtons = document.createElement('div');
-            controlButtons.style.cssText = 'position: absolute; top: 20px; right: 20px; z-index: 10; display: flex; gap: 10px;';
+            controlButtons.className = 'control-buttons';
             controlButtons.innerHTML = `
-                <button onclick="exportToExcel()" style="background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                <button class="control-btn" onclick="exportToExcel()">
                     💾 Export
                 </button>
-                <button onclick="clearAllData()" style="background: rgba(231,76,60,0.8); border: 2px solid rgba(231,76,60,1); color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                <button class="control-btn danger" onclick="clearAllData()">
                     🗑️ Reset
                 </button>
             `;
             header.appendChild(controlButtons);
+            
+            // Initialize with current month/year
+            const currentDate = new Date();
+            document.getElementById('monthFilter').value = currentDate.getMonth() + 1;
+            document.getElementById('yearFilter').value = currentDate.getFullYear();
+            filterMonthlyStats();
         });
 
         // Initialize
@@ -1431,6 +1870,5 @@ function exportToExcel() {
         `);
     </script>
     <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
-    
 </body>
 </html>
