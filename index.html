@@ -2290,6 +2290,14 @@
         }
 
         function exportToExcel() {
+    // Get current date for filename
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    }).replace(/\//g, '-');
+    
     // Prepare data for current queue
     const queueData = deliveryQueue.map((item, index) => {
         const additionalItems = item.additionalItems.map(ai => {
@@ -2299,86 +2307,153 @@
         return {
             'No': index + 1,
             'Nama Pelanggan': item.customerName,
-            'Tipe Antrian': item.queueType === 'warehouse' ? 'Barang Gudang' : 'Reguler',
+            'Tipe Antrian': item.queueType === 'warehouse' ? 'Barang Gudang' : 'Pengiriman Reguler',
             'Prioritas': item.priority === 'high' ? 'Tinggi' : (item.priority === 'medium' ? 'Sedang' : 'Rendah'),
-            'Tujuan Pengiriman': item.destination,
+            'Alamat Tujuan': item.destination,
             'Barang Tambahan': additionalItems || '-',
-            'Waktu Ditambahkan': item.addedTime,
-            'Status': item.completed ? 'Selesai' : 'Dalam Antrian'
+            'Waktu Input': item.addedTime,
+            'Status': item.completed ? 'Selesai' : 'Dalam Proses',
+            'Tanggal Input': new Date(item.addedDate).toLocaleDateString('id-ID')
         };
     });
 
-    // Prepare data for session history
-    const historyData = sessionHistory.map((session, index) => {
-        return {
-            'No': index + 1,
+    // Prepare detailed session history data
+    const historyData = sessionHistory.flatMap((session, sessionIndex) => {
+        // Session summary
+        const sessionSummary = {
+            'No Sesi': sessionIndex + 1,
             'Tanggal Sesi': session.date,
-            'Durasi Sesi': session.duration,
+            'Durasi': session.duration,
             'Total Antrian': session.totalQueue,
-            'Antrian Selesai': session.completedQueue,
+            'Selesai': session.completedQueue,
             'Barang Gudang': session.warehouseItems,
-            'Pengiriman Reguler': session.regularItems
+            'Reguler': session.regularItems,
+            'Detail': 'Ringkasan Sesi'
         };
+        
+        // Session details
+        const details = session.queueDetails.map((item, itemIndex) => {
+            const additionalItems = item.additionalItems.map(ai => {
+                return ai.quantity ? `${ai.name} (${ai.quantity})` : ai.name;
+            }).join(', ');
+            
+            return {
+                'No Sesi': sessionIndex + 1,
+                'No Antrian': itemIndex + 1,
+                'Nama Pelanggan': item.customerName,
+                'Tipe': item.queueType === 'warehouse' ? 'Barang Gudang' : 'Pengiriman Reguler',
+                'Alamat Tujuan': item.destination,
+                'Barang Tambahan': additionalItems || '-',
+                'Status': item.completed ? 'Selesai' : 'Tidak Selesai',
+                'Detail': 'Detail Antrian'
+            };
+        });
+        
+        return [sessionSummary, ...details];
     });
 
-    // Prepare monthly stats data
-    const currentYear = new Date().getFullYear();
+    // Prepare monthly stats with year breakdown
     const statsData = [];
+    const years = Object.keys(monthlyStats).sort((a, b) => b - a); // Latest year first
     
-    for (let month = 1; month <= 12; month++) {
-        const monthName = new Date(2023, month - 1).toLocaleString('id-ID', { month: 'long' });
+    years.forEach(year => {
+        // Year header
         statsData.push({
-            'Bulan': monthName,
-            'Total Pengiriman': monthlyStats[currentYear][month].total,
-            'Barang Gudang': monthlyStats[currentYear][month].warehouse,
-            'Pengiriman Reguler': monthlyStats[currentYear][month].regular
+            'Tahun': year,
+            'Total Pengiriman': '',
+            'Barang Gudang': '',
+            'Pengiriman Reguler': '',
+            'Detail': 'HEADER'
         });
-    }
+        
+        // Monthly data
+        for (let month = 1; month <= 12; month++) {
+            const monthName = new Date(year, month - 1).toLocaleString('id-ID', { month: 'long' });
+            statsData.push({
+                'Bulan': monthName,
+                'Total Pengiriman': monthlyStats[year][month].total,
+                'Barang Gudang': monthlyStats[year][month].warehouse,
+                'Pengiriman Reguler': monthlyStats[year][month].regular,
+                'Detail': 'DATA'
+            });
+        }
+        
+        // Year total
+        const yearTotal = {
+            'Bulan': 'TOTAL ' + year,
+            'Total Pengiriman': Object.values(monthlyStats[year]).reduce((sum, m) => sum + m.total, 0),
+            'Barang Gudang': Object.values(monthlyStats[year]).reduce((sum, m) => sum + m.warehouse, 0),
+            'Pengiriman Reguler': Object.values(monthlyStats[year]).reduce((sum, m) => sum + m.regular, 0),
+            'Detail': 'TOTAL'
+        };
+        statsData.push(yearTotal);
+        
+        // Add empty row between years
+        statsData.push({});
+    });
 
     // Create workbook with multiple sheets
     const wb = XLSX.utils.book_new();
     
-    // Add sheets to workbook
+    // Add sheets to workbook with more descriptive names
     XLSX.utils.book_append_sheet(wb, 
         XLSX.utils.json_to_sheet(queueData), 
-        "Antrian Saat Ini");
+        "Antrian Aktif");
     
     XLSX.utils.book_append_sheet(wb, 
         XLSX.utils.json_to_sheet(historyData), 
-        "Riwayat Sesi");
+        "Riwayat Pengiriman");
     
     XLSX.utils.book_append_sheet(wb, 
         XLSX.utils.json_to_sheet(statsData), 
-        "Statistik Bulanan");
+        "Statistik Tahunan");
 
-    // Set column widths for better formatting
-    const wscols = [
+    // Set different column widths for each sheet
+    wb.Sheets['Antrian Aktif']['!cols'] = [
         {wch: 5},    // No
-        {wch: 25},   // Nama Pelanggan / Tanggal Sesi / Bulan
-        {wch: 15},   // Tipe Antrian / Durasi Sesi / Total Pengiriman
-        {wch: 15},   // Prioritas / Total Antrian / Barang Gudang
-        {wch: 30},   // Tujuan Pengiriman / Antrian Selesai / Pengiriman Reguler
-        {wch: 40},   // Barang Tambahan / Barang Gudang
-        {wch: 20},   // Waktu Ditambahkan / Pengiriman Reguler
-        {wch: 15}    // Status
+        {wch: 25},   // Nama Pelanggan
+        {wch: 15},   // Tipe Antrian
+        {wch: 10},   // Prioritas
+        {wch: 30},   // Alamat Tujuan
+        {wch: 40},   // Barang Tambahan
+        {wch: 15},   // Waktu Input
+        {wch: 12},   // Status
+        {wch: 15}    // Tanggal Input
     ];
     
-    // Apply column widths to all sheets
-    wb.Sheets['Antrian Saat Ini']['!cols'] = wscols;
-    wb.Sheets['Riwayat Sesi']['!cols'] = wscols;
-    wb.Sheets['Statistik Bulanan']['!cols'] = wscols;
+    wb.Sheets['Riwayat Pengiriman']['!cols'] = [
+        {wch: 8},    // No Sesi
+        {wch: 20},   // Tanggal Sesi
+        {wch: 10},   // Durasi
+        {wch: 8},    // Total
+        {wch: 8},    // Selesai
+        {wch: 10},   // Barang Gudang
+        {wch: 8},    // Reguler
+        {wch: 25},   // Nama Pelanggan
+        {wch: 10},   // Tipe
+        {wch: 30},   // Alamat Tujuan
+        {wch: 40},   // Barang Tambahan
+        {wch: 12},   // Status
+        {wch: 15}    // Detail
+    ];
+    
+    wb.Sheets['Statistik Tahunan']['!cols'] = [
+        {wch: 15},   // Tahun/Bulan
+        {wch: 15},   // Total Pengiriman
+        {wch: 15},   // Barang Gudang
+        {wch: 15},   // Pengiriman Reguler
+        {wch: 10}    // Detail (hidden)
+    ];
 
-    // Generate current date for filename
-    const today = new Date();
-    const dateString = today.toISOString().split('T')[0];
+    // Generate filename with company name and date
+    const filename = `Laporan_Pengiriman_PT_Logistik_${formattedDate}.xlsx`;
     
     // Export to Excel
-    XLSX.writeFile(wb, `Laporan_Pengiriman_${dateString}.xlsx`);
+    XLSX.writeFile(wb, filename);
     
     // Show notification
-    showNotification('Semua data berhasil diekspor ke Excel!');
+    showNotification(`Laporan "${filename}" berhasil diunduh!`);
 }
-
         function showUpgradeModal() {
             document.getElementById('upgradeModal').classList.add('active');
         }
