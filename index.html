@@ -2290,53 +2290,94 @@
         }
 
         function exportToExcel() {
-            // Prepare data for export
-            const exportData = deliveryQueue.map((item, index) => {
-                const additionalItems = item.additionalItems.map(ai => {
-                    return ai.quantity ? `${ai.name} (${ai.quantity})` : ai.name;
-                }).join(', ');
-                
-                return {
-                    'No': index + 1,
-                    'Nama Pelanggan': item.customerName,
-                    'Tipe Antrian': item.queueType === 'warehouse' ? 'Barang Gudang' : 'Reguler',
-                    'Prioritas': item.priority === 'high' ? 'Tinggi' : (item.priority === 'medium' ? 'Sedang' : 'Rendah'),
-                    'Tujuan Pengiriman': item.destination,
-                    'Barang Tambahan': additionalItems || '-',
-                    'Waktu Ditambahkan': item.addedTime,
-                    'Status': item.completed ? 'Selesai' : 'Dalam Antrian'
-                };
-            });
+    // Prepare data for current queue
+    const queueData = deliveryQueue.map((item, index) => {
+        const additionalItems = item.additionalItems.map(ai => {
+            return ai.quantity ? `${ai.name} (${ai.quantity})` : ai.name;
+        }).join(', ');
+        
+        return {
+            'No': index + 1,
+            'Nama Pelanggan': item.customerName,
+            'Tipe Antrian': item.queueType === 'warehouse' ? 'Barang Gudang' : 'Reguler',
+            'Prioritas': item.priority === 'high' ? 'Tinggi' : (item.priority === 'medium' ? 'Sedang' : 'Rendah'),
+            'Tujuan Pengiriman': item.destination,
+            'Barang Tambahan': additionalItems || '-',
+            'Waktu Ditambahkan': item.addedTime,
+            'Status': item.completed ? 'Selesai' : 'Dalam Antrian'
+        };
+    });
 
-            // Create worksheet
-            const ws = XLSX.utils.json_to_sheet(exportData);
-            
-            // Set column widths
-            ws['!cols'] = [
-                { wch: 5 },   // No
-                { wch: 25 },  // Nama Pelanggan
-                { wch: 15 },  // Tipe Antrian
-                { wch: 15 },  // Prioritas
-                { wch: 30 },  // Tujuan Pengiriman
-                { wch: 40 },  // Barang Tambahan
-                { wch: 20 },  // Waktu Ditambahkan
-                { wch: 15 }   // Status
-            ];
-            
-            // Create workbook
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Antrian Pengiriman");
-            
-            // Generate current date for filename
-            const today = new Date();
-            const dateString = today.toISOString().split('T')[0];
-            
-            // Export to Excel
-            XLSX.writeFile(wb, `Antrian_Pengiriman_${dateString}.xlsx`);
-            
-            // Show notification
-            showNotification('Data berhasil diekspor ke Excel!');
-        }
+    // Prepare data for session history
+    const historyData = sessionHistory.map((session, index) => {
+        return {
+            'No': index + 1,
+            'Tanggal Sesi': session.date,
+            'Durasi Sesi': session.duration,
+            'Total Antrian': session.totalQueue,
+            'Antrian Selesai': session.completedQueue,
+            'Barang Gudang': session.warehouseItems,
+            'Pengiriman Reguler': session.regularItems
+        };
+    });
+
+    // Prepare monthly stats data
+    const currentYear = new Date().getFullYear();
+    const statsData = [];
+    
+    for (let month = 1; month <= 12; month++) {
+        const monthName = new Date(2023, month - 1).toLocaleString('id-ID', { month: 'long' });
+        statsData.push({
+            'Bulan': monthName,
+            'Total Pengiriman': monthlyStats[currentYear][month].total,
+            'Barang Gudang': monthlyStats[currentYear][month].warehouse,
+            'Pengiriman Reguler': monthlyStats[currentYear][month].regular
+        });
+    }
+
+    // Create workbook with multiple sheets
+    const wb = XLSX.utils.book_new();
+    
+    // Add sheets to workbook
+    XLSX.utils.book_append_sheet(wb, 
+        XLSX.utils.json_to_sheet(queueData), 
+        "Antrian Saat Ini");
+    
+    XLSX.utils.book_append_sheet(wb, 
+        XLSX.utils.json_to_sheet(historyData), 
+        "Riwayat Sesi");
+    
+    XLSX.utils.book_append_sheet(wb, 
+        XLSX.utils.json_to_sheet(statsData), 
+        "Statistik Bulanan");
+
+    // Set column widths for better formatting
+    const wscols = [
+        {wch: 5},    // No
+        {wch: 25},   // Nama Pelanggan / Tanggal Sesi / Bulan
+        {wch: 15},   // Tipe Antrian / Durasi Sesi / Total Pengiriman
+        {wch: 15},   // Prioritas / Total Antrian / Barang Gudang
+        {wch: 30},   // Tujuan Pengiriman / Antrian Selesai / Pengiriman Reguler
+        {wch: 40},   // Barang Tambahan / Barang Gudang
+        {wch: 20},   // Waktu Ditambahkan / Pengiriman Reguler
+        {wch: 15}    // Status
+    ];
+    
+    // Apply column widths to all sheets
+    wb.Sheets['Antrian Saat Ini']['!cols'] = wscols;
+    wb.Sheets['Riwayat Sesi']['!cols'] = wscols;
+    wb.Sheets['Statistik Bulanan']['!cols'] = wscols;
+
+    // Generate current date for filename
+    const today = new Date();
+    const dateString = today.toISOString().split('T')[0];
+    
+    // Export to Excel
+    XLSX.writeFile(wb, `Laporan_Pengiriman_${dateString}.xlsx`);
+    
+    // Show notification
+    showNotification('Semua data berhasil diekspor ke Excel!');
+}
 
         function showUpgradeModal() {
             document.getElementById('upgradeModal').classList.add('active');
